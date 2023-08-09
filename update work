@@ -1,0 +1,31 @@
+import serial
+
+if __name__ == "__main__":
+    port_name = 'COM4'  # Replace with the actual COM port name
+    baud_rate = 115200  # Replace with the appropriate baud rate
+
+    try:
+        serial_port = serial.Serial(port_name, baud_rate, timeout=1)
+        print(f"Connected to {port_name} at {baud_rate} baud")
+
+        while True:
+            serial_port.write(0X01)#(b'\x01')
+            print("Sent: 0x01")
+            
+            received_data = serial_port.read(1)
+            if received_data == 0x02:#b'\x02':
+                print("Received: 0x02")
+            else:
+                print("Received unexpected data")
+
+            serial_port.write(b'\x03')
+            print("Sent: 0x03")
+            
+            received_data = serial_port.read(1)
+            if received_data == b'\x04':
+                print("Received: 0x04")
+            else:
+                print("Received unexpected data")
+
+    except serial.SerialException as e:
+        print(f"Error: {e}")
