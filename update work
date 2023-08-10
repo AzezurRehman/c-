@@ -9,6 +9,70 @@ if __name__ == "__main__":
         print(f"Connected to {port_name} at {baud_rate} baud")
 
         while True:
+            cat2 = serial_port.write(b'\x01')  # Send byte 0x01
+            print("Sending data_1")
+            print(cat2)
+        """
+            received_data = serial_port.read(1)
+            print("Receiving data")
+            print(received_data)
+            if received_data == b'\x02':
+                print("Received: 0x02")
+            else:
+                print("Received unexpected data")
+
+            cat = serial_port.write(b'\x03')  # Send byte 0x03
+            print("Sending data_2")
+            print(cat)
+            
+            received_data2 = serial_port.read(1)
+            print("Receiving data_2")
+            print(received_data2)
+            if received_data2 == b'\x04':
+                print("Received: 0x04")
+            else:
+                print("Received unexpected data")
+        """
+    except serial.SerialException as e:
+        print(f"Error: {e}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import serial
+
+if __name__ == "__main__":
+    port_name = 'COM4'  # Replace with the actual COM port name
+    baud_rate = 115200  # Replace with the appropriate baud rate
+
+    try:
+        serial_port = serial.Serial(port_name, baud_rate, timeout=1)
+        print(f"Connected to {port_name} at {baud_rate} baud")
+
+        while True:
             serial_port.write(0X01)#(b'\x01')
             print("Sent: 0x01")
             
