@@ -1,0 +1,55 @@
+void setupPWMforDCtoAC(uint32_t base1, uint32_t base2, uint16_t pwm_period_ticks, uint16_t pwm_db_ticks) 
+{
+    // Time Base Submodule Configuration
+    EPWM_setPeriodLoadMode(base1, EPWM_PERIOD_SHADOW_LOAD);
+    EPWM_setTimeBasePeriod(base1, pwm_period_ticks >> 1);  // Set PWM frequency (divide by 2 for up-down counting)
+    EPWM_setTimeBaseCounter(base1, 0);
+    EPWM_setPhaseShift(base1, 0);
+    EPWM_setTimeBaseCounterMode(base1, EPWM_COUNTER_MODE_UP_DOWN);
+    EPWM_setClockPrescaler(base1, EPWM_CLOCK_DIVIDER_1, EPWM_HSCLOCK_DIVIDER_1);
+
+    // Second phase-shifted PWM for full-bridge operation
+    EPWM_setPeriodLoadMode(base2, EPWM_PERIOD_SHADOW_LOAD);
+    EPWM_setTimeBasePeriod(base2, pwm_period_ticks >> 1);
+    EPWM_setTimeBaseCounter(base2, 0);
+    EPWM_setPhaseShift(base2, pwm_period_ticks >> 1); // 180-degree phase shift
+    EPWM_setTimeBaseCounterMode(base2, EPWM_COUNTER_MODE_UP_DOWN);
+    EPWM_setClockPrescaler(base2, EPWM_CLOCK_DIVIDER_1, EPWM_HSCLOCK_DIVIDER_1);
+
+    // Counter Compare Submodule Configuration
+    EPWM_setCounterCompareValue(base1, EPWM_COUNTER_COMPARE_A, pwm_period_ticks >> 2); // 25% duty
+    EPWM_setCounterCompareShadowLoadMode(base1, EPWM_COUNTER_COMPARE_A, EPWM_COMP_LOAD_ON_CNTR_ZERO);
+
+    EPWM_setCounterCompareValue(base2, EPWM_COUNTER_COMPARE_A, pwm_period_ticks >> 2); // 25% duty
+    EPWM_setCounterCompareShadowLoadMode(base2, EPWM_COUNTER_COMPARE_A, EPWM_COMP_LOAD_ON_CNTR_ZERO);
+
+    // Action Qualifier Configuration
+    EPWM_setActionQualifierAction(base1, EPWM_AQ_OUTPUT_A, EPWM_AQ_OUTPUT_HIGH, EPWM_AQ_OUTPUT_ON_TIMEBASE_UP_CMPA);
+    EPWM_setActionQualifierAction(base1, EPWM_AQ_OUTPUT_A, EPWM_AQ_OUTPUT_LOW, EPWM_AQ_OUTPUT_ON_TIMEBASE_DOWN_CMPA);
+
+    EPWM_setActionQualifierAction(base2, EPWM_AQ_OUTPUT_A, EPWM_AQ_OUTPUT_HIGH, EPWM_AQ_OUTPUT_ON_TIMEBASE_UP_CMPA);
+    EPWM_setActionQualifierAction(base2, EPWM_AQ_OUTPUT_A, EPWM_AQ_OUTPUT_LOW, EPWM_AQ_OUTPUT_ON_TIMEBASE_DOWN_CMPA);
+
+    // Dead-Band Configuration for Safe Switching
+    EPWM_setDeadBandCounterClock(base1, EPWM_DB_COUNTER_CLOCK_FULL_CYCLE);
+    EPWM_setRisingEdgeDelayCount(base1, pwm_db_ticks);
+    EPWM_setFallingEdgeDelayCount(base1, pwm_db_ticks);
+    EPWM_setDeadBandDelayMode(base1, EPWM_DB_RED, true);
+    EPWM_setDeadBandDelayMode(base1, EPWM_DB_FED, true);
+
+    EPWM_setDeadBandCounterClock(base2, EPWM_DB_COUNTER_CLOCK_FULL_CYCLE);
+    EPWM_setRisingEdgeDelayCount(base2, pwm_db_ticks);
+    EPWM_setFallingEdgeDelayCount(base2, pwm_db_ticks);
+    EPWM_setDeadBandDelayMode(base2, EPWM_DB_RED, true);
+    EPWM_setDeadBandDelayMode(base2, EPWM_DB_FED, true);
+
+    // Synchronization Configuration
+    EPWM_disablePhaseShiftLoad(base1);
+    EPWM_setSyncOutPulseMode(base1, EPWM_SYNC_OUT_PULSE_ON_COUNTER_ZERO);
+
+    EPWM_enablePhaseShiftLoad(base2);
+    EPWM_setSyncOutPulseMode(base2, EPWM_SYNC_OUT_PULSE_ON_SOFTWARE);
+    EPWM_setCountModeAfterSync(base2, EPWM_COUNT_MODE_UP_AFTER_SYNC);
+
+    SysCtl_setSyncInputConfig(SYSCTL_SYNC_IN_EPWM2, SYSCTL_SYNC_IN_SRC_EPWM1SYNCOUT);
+}
